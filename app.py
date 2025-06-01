@@ -13,6 +13,7 @@ def home():
 
     page = 1
     has_next = False
+    per_page = 20
 
     if request.method == "POST":
         search_title = request.form.get("title", "")
@@ -29,7 +30,6 @@ def home():
             filtered_df = filtered_df[filtered_df["type"].str.contains(search_genre, case=False, na=False)]
 
         # Pagination
-        per_page = 20
         start = (page - 1) * per_page
         end = start + per_page
         has_next = end < len(filtered_df)
@@ -37,7 +37,12 @@ def home():
 
         table_html = filtered_df.to_html(classes="table table-striped", index=False)
     else:
-        table_html = None
+        # Show first page of all titles by default on GET request
+        start = (page - 1) * per_page
+        end = start + per_page
+        has_next = end < len(filtered_df)
+        filtered_df = filtered_df.iloc[start:end]
+        table_html = filtered_df.to_html(classes="table table-striped", index=False)
 
     return render_template(
         "index.html",
